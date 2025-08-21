@@ -1,6 +1,5 @@
 annotated-types==0.7.0
 anyio==4.10.0
-black==25.1.0
 certifi==2025.8.3
 cfgv==3.4.0
 charset-normalizer==3.4.3
@@ -25,6 +24,7 @@ Jinja2==3.1.6
 markdown-it-py==4.0.0
 MarkupSafe==3.0.2
 marshmallow==4.0.0
+mccabe==0.7.0
 mdurl==0.1.2
 mypy_extensions==1.1.0
 nodeenv==1.9.1
@@ -32,11 +32,12 @@ orjson==3.11.2
 packaging==25.0
 pathspec==0.12.1
 platformdirs==4.3.8
-pre_commit==4.3.0
+pycodestyle==2.14.0
 pydantic==2.11.7
 pydantic-extra-types==2.10.5
 pydantic-settings==2.10.1
 pydantic_core==2.33.2
+pyflakes==3.4.0
 Pygments==2.19.2
 python-dotenv==1.1.1
 python-multipart==0.0.20
