@@ -1,7 +1,7 @@
 import uuid
 
 from environs import Env
-from fastapi import Cookie, FastAPI, Response
+from fastapi import Cookie, FastAPI
 from fastapi.responses import JSONResponse
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from pydantic import BaseModel
@@ -26,27 +26,24 @@ db_users = [
     {"login": "Olga2001", "password": "01012001"}
 ]
 
-# user_tokens = {}
-
 
 @app.post("/login")
-async def login(response: Response, user_data: User):
+async def login(user_data: User):
     for user in db_users:
         if (user['login'] == user_data.login and
             user['password'] == user_data.password):
             token = s.dumps({"token": str(uuid.uuid4()),
                             "login": user_data.login
                             })
+            response = JSONResponse({"message": "You logged in successfully."})
             response.set_cookie(key="session_token", value=token,
                                 httponly=True, secure=True)
-            return {"message": "You logged in successfully."}
+            return response
     return {"message": "no user found"}
 
 
 @app.get("/user")
 async def get_user(session_token: str = Cookie(default=None)):
-    if session_token is None:
-        return Response(status_code=401)
     try:
         user_data = s.loads(session_token, max_age=MAX_AGE)
         return {"message": f"Your profile data, {user_data['login']}"}
