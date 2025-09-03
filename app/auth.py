@@ -26,6 +26,7 @@ async def login(response: Response, user: User):
 
 @app.get("/user")
 async def get_user(session_token: str = Cookie(default=None)):
-    if session_token in user_tokens:
-        return {"message": f"Your profile data: {user_tokens[session_token]}"}
+    user = user_tokens.get(session_token)
+    if user:
+        return {"message": f"Your profile data: {user.dict()}"}
     return Response(status_code=401)
