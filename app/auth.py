@@ -22,20 +22,6 @@ class User(BaseModel):
     password: str
 
 
-# class SessionCookie:
-#     def __init__(self, token):
-#         cookie = s.loads(token, max_age=MAX_AGE)
-#         self.timestamp = cookie["last_active"]
-#         self.login = cookie["login"]
-#         self.uuid = cookie["uuid"]
-
-#     def needs_to_be_updated(self):
-#         return 10 <= time.time() - self.timestamp < 15
-
-#     def update(self):
-#         self.timestamp = int(time.time())
-
-
 db_users = [
     {"login": "Vasily007", "password": '123456'},
     {"login": "Olga2001", "password": "01012001"}
