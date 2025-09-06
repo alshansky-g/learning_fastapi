@@ -1,17 +1,17 @@
-from models import User, UserInDB
+from secrets import compare_digest
+
+from models import UserInDB
 
 USER_DB = []
 
 
-def get_user_from_db(user_in: User):
+def get_user_from_db(username: str):
     for user in USER_DB:
-        if user["username"] == user_in.username:
-            return UserInDB(username=user_in.username,
+        if compare_digest(user["username"], username):
+            return UserInDB(username=username,
                             hashed_password=user["hashed_password"])
     return None
 
 
-def save_user_to_db(username: str, hashed_password: str):
-    USER_DB.append(UserInDB(username=username,
-                            hashed_password=hashed_password).model_dump())
-    print(USER_DB)
+def save_user_to_db(user: UserInDB):
+    USER_DB.append(user.model_dump())
