@@ -10,14 +10,17 @@ from fastapi.security import HTTPBasicCredentials
 from schemas import User, UserInDB
 from services import hash_password
 
-if config.mode == "DEV":
-    app = FastAPI(redoc_url=None, openapi_url=None)
-    config.openapi_url = "/openapi.json"
+app = FastAPI(openapi_url=None, redoc_url=None, docs_url=None)
+
+
+if config.mode == "PROD":
+    pass
+elif config.mode == "DEV":
     @app.get("/docs", include_in_schema=False)
     def get_docs(
         _: Annotated[HTTPBasicCredentials, Depends(docs_auth)]
         ):
-        return get_swagger_ui_html(openapi_url=config.openapi_url,
+        return get_swagger_ui_html(openapi_url="/openapi.json",
                                 title="Docs",
                                 swagger_ui_parameters={
                                     "persistAuthorization": True
@@ -26,9 +29,6 @@ if config.mode == "DEV":
     @app.get("/openapi.json", include_in_schema=False)
     def get_docs_json(_: Annotated[HTTPBasicCredentials, Depends(docs_auth)]):
         return app.openapi()
-
-elif config.mode == "PROD":
-    app = FastAPI(openapi_url=None, redoc_url=None, docs_url=None)
 else:
     raise ValueError("недопустимое значение переменной MODE")
 
