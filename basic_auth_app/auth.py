@@ -1,5 +1,7 @@
+from secrets import compare_digest
 from typing import Annotated
 
+from config import config
 from db import get_user_from_db
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -21,3 +23,13 @@ async def authenticate_user(
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid credentials",
                             headers={"WWW-Authenticate": "Basic"})
+
+
+def docs_auth(
+        credentials: Annotated[HTTPBasicCredentials, Depends(security)]
+):
+    if (compare_digest(credentials.username, config.docs_user) and
+        compare_digest(credentials.password, config.docs_password)):
+        return credentials
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                        headers={"WWW-Authenticate": "Basic"})
