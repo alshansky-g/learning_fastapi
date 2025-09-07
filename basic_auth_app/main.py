@@ -23,7 +23,6 @@ if config.mode == "DEV":
                                     "persistAuthorization": True
                                 })
 
-
     @app.get("/openapi.json", include_in_schema=False)
     def get_docs_json(_: Annotated[HTTPBasicCredentials, Depends(docs_auth)]):
         return app.openapi()
