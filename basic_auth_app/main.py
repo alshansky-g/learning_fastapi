@@ -4,7 +4,7 @@ import uvicorn
 from auth import authenticate_user
 from db import save_user_to_db
 from fastapi import Depends, FastAPI
-from models import User, UserInDB
+from schemas import User, UserInDB
 from services import hash_password
 
 app = FastAPI()

@@ -1,6 +1,6 @@
 from secrets import compare_digest
 
-from models import UserInDB
+from schemas import UserInDB
 
 USER_DB = []
 

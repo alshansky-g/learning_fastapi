@@ -2,7 +2,7 @@ import asyncio
 
 from passlib.context import CryptContext
 
-ctx = CryptContext(schemes=["bcrypt"], bcrypt__rounds=10)
+ctx = CryptContext(schemes=["bcrypt"], bcrypt__rounds=8)
 
 
 async def hash_password(password: str) -> str:
