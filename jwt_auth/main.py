@@ -10,7 +10,7 @@ app = FastAPI()
 
 @app.post("/login")
 async def login(user: Annotated[User, Depends(auth_user)]):
-    return {"message": "You logged in"}
+    return {"message": f"You logged in, {user.username}"}
 
 
 @app.get("/profile")
