@@ -3,22 +3,28 @@ from typing import Annotated
 
 import jwt
 from config import config
-from db import USERS_DB
+from db import get_user_from_db
 from fastapi import Cookie, HTTPException, Response, status
 from models import User
+from services import check_hashes
 
 
 def auth_user(credentials: User, response: Response):
-    for user in USERS_DB:
-        if (user["username"] == credentials.username and
-            user["password"] == credentials.password):
-            token = create_jwt_token({"username": credentials.username})
-            response.set_cookie(key="access_token",
-                                value=token,
-                                httponly=True, secure=True)
-            return credentials
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Invalid credentials")
+    user = get_user_from_db(credentials.username)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="User not found")
+    passwords_match = check_hashes(
+         credentials.password, user["password"]
+    )
+    if not passwords_match:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authorization failed")
+    token = create_jwt_token({"username": credentials.username})
+    response.set_cookie(key="access_token",
+                        value=token,
+                        httponly=True, secure=True)
+    return credentials
 
 
 def create_jwt_token(user: dict):
