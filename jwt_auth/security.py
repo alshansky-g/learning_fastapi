@@ -33,7 +33,7 @@ def check_token(access_token: Annotated[str | None, Cookie()] = None):
     if access_token is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     try:
-        payload = jwt.decode(jwt=str(access_token),
+        payload = jwt.decode(jwt=access_token,
                         key=config.secret_key,
                         algorithms=[config.algorithm])
         return payload.get("username")
