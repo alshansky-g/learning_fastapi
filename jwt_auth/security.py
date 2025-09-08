@@ -46,6 +46,6 @@ def check_token(access_token: Annotated[str | None, Cookie()] = None):
     except jwt.ExpiredSignatureError as err:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Expired token") from err
-    except jwt.InvalidSignatureError as err:
+    except (jwt.InvalidSignatureError, jwt.DecodeError) as err:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid token") from err

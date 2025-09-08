@@ -1,17 +1,34 @@
+from contextlib import asynccontextmanager
 from typing import Annotated
 
+import redis.asyncio as redis
 import uvicorn
 from db import get_user_from_db, save_user_to_db
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
 from models import User
 from security import auth_user, check_token
 from services import hash_password
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    redis_connection = redis.from_url(
+        "redis://localhost:6379", encoding="utf-8"
+        )
+    await FastAPILimiter.init(redis_connection)
+    yield
+    await FastAPILimiter.close()
 
 
-@app.post("/register")
+app = FastAPI(lifespan=lifespan)
+
+
+@app.post("/register",
+          dependencies=[Depends(RateLimiter(times=1, seconds=60))]
+          )
 async def register(user_data: User):
     user = get_user_from_db(user_data.username)
     if user is not None:
@@ -23,7 +40,8 @@ async def register(user_data: User):
                         content={"message": "New user created"})
 
 
-@app.post("/login")
+@app.post("/login",
+          dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 async def login(user: Annotated[User, Depends(auth_user)]):
     return {"message": f"You logged in, {user.username}"}
 
