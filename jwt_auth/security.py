@@ -1,41 +1,25 @@
-from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
 from config import config
-from db import get_user_from_db
+from db import get_token_from_db, get_user_from_db
 from fastapi import Cookie, HTTPException, Response, status
 from models import User
-from services import check_hashes
+from services import passwords_match, set_tokens
 
 
-def auth_user(credentials: User, response: Response):
+def auth_user(credentials: User):
     user = get_user_from_db(credentials.username)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-    passwords_match = check_hashes(
-         credentials.password, user["password"]
-    )
-    if not passwords_match:
+    if not passwords_match(credentials.password, user["password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Authorization failed")
-    token = create_jwt_token({"username": credentials.username})
-    response.set_cookie(key="access_token",
-                        value=token,
-                        httponly=True, secure=True)
     return credentials
 
 
-def create_jwt_token(user: dict):
-    user.update({"exp": datetime.now(UTC) + timedelta(minutes=30)})
-    token = jwt.encode(key=config.secret_key,
-                       algorithm=config.algorithm,
-                       payload=user)
-    return token
-
-
-def check_token(access_token: Annotated[str | None, Cookie()] = None):
+def check_access_token(access_token: Annotated[str | None, Cookie()] = None):
     if access_token is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     try:
@@ -49,3 +33,22 @@ def check_token(access_token: Annotated[str | None, Cookie()] = None):
     except (jwt.InvalidSignatureError, jwt.DecodeError) as err:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid token") from err
+
+
+def check_refresh_token(refresh_token: Annotated[str, Cookie()],
+                        response: Response):
+    try:
+        payload = jwt.decode(jwt=refresh_token,
+                             key=config.secret_key,
+                             algorithms=[config.algorithm])
+        token_type = payload.get("type")
+        username = payload.get("username")
+        token_in_db = get_token_from_db(username)
+        if not (token_type == "refresh" and token_in_db):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="не тот тип токена/токена нет в БД")
+        set_tokens(response, username)
+        return response
+    except (jwt.ExpiredSignatureError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Срок действия токена истек") from None

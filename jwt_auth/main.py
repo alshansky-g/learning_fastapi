@@ -4,13 +4,13 @@ from typing import Annotated
 import redis.asyncio as redis
 import uvicorn
 from db import get_user_from_db, save_user_to_db
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 from models import User
-from security import auth_user, check_token
-from services import hash_password
+from security import auth_user, check_access_token, check_refresh_token
+from services import hash_password, set_tokens
 
 
 @asynccontextmanager
@@ -27,7 +27,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/register",
-          dependencies=[Depends(RateLimiter(times=1, seconds=60))]
+          dependencies=[Depends(RateLimiter(times=100, seconds=60))]
           )
 async def register(user_data: User):
     user = get_user_from_db(user_data.username)
@@ -41,16 +41,23 @@ async def register(user_data: User):
 
 
 @app.post("/login",
-          dependencies=[Depends(RateLimiter(times=5, seconds=60))])
-async def login(user: Annotated[User, Depends(auth_user)]):
+          dependencies=[Depends(RateLimiter(times=500, seconds=60))])
+async def login(user: Annotated[User, Depends(auth_user)],
+                response: Response):
+    set_tokens(response, user.username)
     return {"message": f"You logged in, {user.username}"}
 
 
 @app.get("/profile")
 async def get_profile(
-    username: Annotated[str | None, Depends(check_token)],
+    username: Annotated[str | None, Depends(check_access_token)],
 ):
     return {"message": f"Your profile page, {username}"}
+
+
+@app.post("/refresh")
+async def refresh(username: Annotated[str, Depends(check_refresh_token)]):
+    return {"message": f"Your tokens have been refreshed, {username}"}
 
 
 if __name__ == "__main__":
