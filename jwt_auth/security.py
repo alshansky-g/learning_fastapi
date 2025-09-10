@@ -47,7 +47,7 @@ def check_refresh_token(refresh_token: Annotated[str, Cookie()],
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Invalid token")
         set_tokens(response, username)
-        return response
+        return username
     except (jwt.ExpiredSignatureError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Token expired") from None

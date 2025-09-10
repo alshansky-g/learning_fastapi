@@ -57,7 +57,7 @@ async def get_profile(
 
 @app.post("/refresh", dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 async def refresh(username: Annotated[str, Depends(check_refresh_token)]):
-    return {"message": "Your tokens have been refreshed"}
+    return {"message": f"Your tokens have been refreshed, {username}"}
 
 
 if __name__ == "__main__":
