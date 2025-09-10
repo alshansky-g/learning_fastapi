@@ -41,14 +41,13 @@ def check_refresh_token(refresh_token: Annotated[str, Cookie()],
         payload = jwt.decode(jwt=refresh_token,
                              key=config.secret_key,
                              algorithms=[config.algorithm])
-        token_type = payload.get("type")
         username = payload.get("username")
         token_in_db = get_token_from_db(username)
-        if not (token_type == "refresh" and token_in_db):
+        if not token_in_db:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                detail="не тот тип токена/токена нет в БД")
+                                detail="Invalid token")
         set_tokens(response, username)
         return response
     except (jwt.ExpiredSignatureError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Срок действия токена истек") from None
+                            detail="Token expired") from None

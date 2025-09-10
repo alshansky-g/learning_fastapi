@@ -27,7 +27,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/register",
-          dependencies=[Depends(RateLimiter(times=100, seconds=60))]
+          dependencies=[Depends(RateLimiter(times=1, seconds=60))]
           )
 async def register(user_data: User):
     user = get_user_from_db(user_data.username)
@@ -41,7 +41,7 @@ async def register(user_data: User):
 
 
 @app.post("/login",
-          dependencies=[Depends(RateLimiter(times=500, seconds=60))])
+          dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 async def login(user: Annotated[User, Depends(auth_user)],
                 response: Response):
     set_tokens(response, user.username)
@@ -55,9 +55,9 @@ async def get_profile(
     return {"message": f"Your profile page, {username}"}
 
 
-@app.post("/refresh")
+@app.post("/refresh", dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 async def refresh(username: Annotated[str, Depends(check_refresh_token)]):
-    return {"message": f"Your tokens have been refreshed, {username}"}
+    return {"message": "Your tokens have been refreshed"}
 
 
 if __name__ == "__main__":
