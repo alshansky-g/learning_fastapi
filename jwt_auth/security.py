@@ -40,7 +40,8 @@ def check_refresh_token(refresh_token: Annotated[str, Cookie()],
     try:
         payload = jwt.decode(jwt=refresh_token,
                              key=config.secret_key,
-                             algorithms=[config.algorithm])
+                             algorithms=[config.algorithm],
+                             options={"verify_exp": True})
         username = payload.get("username")
         token_in_db = get_token_from_db(username)
         if not token_in_db:
@@ -50,4 +51,5 @@ def check_refresh_token(refresh_token: Annotated[str, Cookie()],
         return username
     except (jwt.ExpiredSignatureError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Token expired") from None
+                            detail="Refresh token expired, login required") \
+                            from None
