@@ -8,11 +8,18 @@ from rbac import PermissionChecker
 app = FastAPI()
 
 
-@app.get("/admin/")
-async def admin_info(
-    user: Annotated[User, Depends(PermissionChecker(["admin"]))]
+@app.get("/protected")
+async def get_protected_resource(
+    user: Annotated[User, Depends(PermissionChecker({"create", "delete"}))]
 ):
     return {"message": f"Welcome, {user.username}"}
+
+
+@app.get("/profile")
+async def get_profile(
+    user: Annotated[User, Depends(PermissionChecker({"read", "update"}))]
+):
+    return {"message": f"Welcome to your profile page, {user.username}"}
 
 
 if __name__ == '__main__':

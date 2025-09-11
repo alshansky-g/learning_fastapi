@@ -4,17 +4,26 @@ from database import get_user
 from fastapi import Depends, HTTPException, status
 from models import User
 
+ROLE_PERMISSIONS = {
+    "admin": {"create", "read", "update", "delete"},
+    "user": {"read", "update"},
+    "guest": {"read"}
+}
+
 
 class PermissionChecker:
-    def __init__(self, roles: list[str]) -> None:
-        self.roles = roles
+    def __init__(self, required: set[str]) -> None:
+        self.required = required
 
-    async def __call__(self, user: Annotated[User, Depends(get_user)]) -> User:
+    async def __call__(
+            self, user: Annotated[User, Depends(get_user)]
+            ) -> User:
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Пользователь не найден")
-        if user.role not in self.roles:
+        permissions = ROLE_PERMISSIONS.get(user.role, set())
+        if not self.required.issubset(permissions):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Недостаточно прав для доступа",
