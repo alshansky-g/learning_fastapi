@@ -1,17 +1,23 @@
+from dataclasses import dataclass
 from typing import Annotated
 
 from database import get_user
 from fastapi import Depends, HTTPException, status
 from models import User
 
-ROLE_PERMISSIONS = {
-    "admin": {"create", "read", "update", "delete"},
-    "user": {"read", "update"},
-    "guest": {"read"}
-}
+
+@dataclass
+class Role:
+    ADMIN = {"create", "read", "update", "delete"}
+    USER = {"read", "update"}
+    GUEST = {"read"}
+
+    @classmethod
+    def get(cls, role: str) -> set:
+        return getattr(cls, role.upper())
 
 
-class PermissionChecker:
+class Permission:
     def __init__(self, required: set[str]) -> None:
         self.required = required
 
@@ -22,7 +28,7 @@ class PermissionChecker:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Пользователь не найден")
-        permissions = ROLE_PERMISSIONS.get(user.role, set())
+        permissions: set = Role.get(user.role)
         if not self.required.issubset(permissions):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
