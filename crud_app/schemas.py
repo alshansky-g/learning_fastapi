@@ -1,13 +1,19 @@
-from pydantic import BaseModel, ConfigDict
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class ToDoBase(BaseModel):
-    title: str
-    description: str
-    completed: bool = False
+class ToDoCreate(BaseModel):
+    title: str = Field(max_length=50)
+    description: str = Field(max_length=200)
+    completed: bool = Field(default=False)
 
 
-class ToDo(ToDoBase):
+class ToDoUpdate(ToDoCreate):
+    completed_at: datetime = Field(default_factory=datetime.now)
+
+
+class ToDo(ToDoCreate):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
