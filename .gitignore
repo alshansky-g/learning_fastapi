@@ -4,3 +4,4 @@ __pycache__
 ignore.py
 sandbox.py
 .vscode/
+*.log

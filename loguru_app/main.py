@@ -8,7 +8,8 @@ from loguru import logger
 app = FastAPI()
 fmt = ""
 logger.remove()
-logger.add("log_file.log", serialize=True, backtrace=False)
+logger.add("log_file.log", serialize=True, backtrace=False,
+           rotation="10 seconds", retention="1 day")
 logger.add(sys.stdout, serialize=True, backtrace=False)
 
 
